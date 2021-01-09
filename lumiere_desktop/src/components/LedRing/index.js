@@ -1,9 +1,15 @@
 import React from 'react'
+import { SwatchesPicker, ChromePicker } from 'react-color';
 
 export default class LedRing extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {}
+    this.state = {
+      colors: (new Uint8Array(24 * 3)).fill(255),
+      showColorPicker: false,
+      pickedColor: {r: 255, g: 255, b: 255},
+      selectedLedIndex: null,
+    }
     this._svgContainerRef = React.createRef()
     this._svgCircles = []
     this._svgHalos = []
@@ -67,11 +73,22 @@ export default class LedRing extends React.Component {
       ledGroup.appendChild(circle)
       this._svgCircles.push(circle)
 
-      circle.addEventListener('mouseenter', (evt) => {
-        const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
-        evt.target.style.fill = randomColor
+      circle.addEventListener('mousedown', (evt) => {
+        // const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+        // evt.target.style.fill = randomColor
+
+        // this._svgHalos[circleIndex].style.fill = randomColor
         let circleIndex = parseInt(evt.target.id)
-        this._svgHalos[circleIndex].style.fill = randomColor
+        this.setState({
+          showColorPicker: true,
+          pickedColor: {
+            r: this.state.colors[circleIndex * 3],
+            g: this.state.colors[circleIndex * 3 + 1],
+            b: this.state.colors[circleIndex * 3 + 2] ,
+          },
+          selectedLedIndex: circleIndex,
+        })
+
       })
 
       const halo = document.createElementNS(NS, 'circle')
@@ -85,17 +102,28 @@ export default class LedRing extends React.Component {
 
 
     }
-
   }
 
 
-  onLedClick = (evt) => {
+  onUpdateColor = (evt) => {
     console.log(evt)
+    const rgb = evt.rgb
+    const ledIndex = this.state.selectedLedIndex
+    this.state.colors[ledIndex * 3] = rgb.r
+    this.state.colors[ledIndex * 3 + 1] = rgb.g
+    this.state.colors[ledIndex * 3 + 2] = rgb.b
+
+    this._svgCircles[ledIndex].style.fill = `#${rgb.r.toString(16)}${rgb.g.toString(16)}${rgb.b.toString(16)}`
+    this._svgHalos[ledIndex].style.fill = `#${rgb.r.toString(16)}${rgb.g.toString(16)}${rgb.b.toString(16)}`
+
+    this.setState({pickedColor: evt.rgb})
   }
 
   render() {
     return (
-      <div ref={this._svgContainerRef} >
+      <div>
+        { this.state.showColorPicker ? <ChromePicker disableAlpha={true} color={this.state.pickedColor} onChange={this.onUpdateColor}/> : null }
+        <div ref={this._svgContainerRef} />
       </div>
     )
   }
