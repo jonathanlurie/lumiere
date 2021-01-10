@@ -3,6 +3,7 @@
  *        See https://github.com/webpack-contrib/sass-loader#imports
  */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap');
+@import url('antd/dist/antd.css');
 
 body {
   position: relative;
@@ -71,4 +72,11 @@ a:hover {
   justify-content: center;
   align-items: center;
   margin: 20px 0;
+}
+
+
+/* --------------------------------- */
+/* */
+.chrome-picker {
+  width: 160px !important;
 }

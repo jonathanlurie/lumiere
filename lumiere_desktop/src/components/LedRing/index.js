@@ -1,5 +1,7 @@
 import React from 'react'
-import { SwatchesPicker, ChromePicker } from 'react-color';
+import { SwatchesPicker, ChromePicker } from 'react-color'
+import { Button } from 'antd'
+import Styles from './styles.css'
 
 export default class LedRing extends React.Component {
   constructor(props) {
@@ -79,6 +81,15 @@ export default class LedRing extends React.Component {
 
         // this._svgHalos[circleIndex].style.fill = randomColor
         let circleIndex = parseInt(evt.target.id)
+
+        if (this.state.selectedLedIndex === circleIndex) {
+          this.setState({
+            showColorPicker: false,
+            selectedLedIndex: null,
+          })
+          return
+        }
+
         this.setState({
           showColorPicker: true,
           pickedColor: {
@@ -113,17 +124,36 @@ export default class LedRing extends React.Component {
     this.state.colors[ledIndex * 3 + 1] = rgb.g
     this.state.colors[ledIndex * 3 + 2] = rgb.b
 
-    this._svgCircles[ledIndex].style.fill = `#${rgb.r.toString(16)}${rgb.g.toString(16)}${rgb.b.toString(16)}`
-    this._svgHalos[ledIndex].style.fill = `#${rgb.r.toString(16)}${rgb.g.toString(16)}${rgb.b.toString(16)}`
+    this._svgCircles[ledIndex].style.fill = evt.hex
+    this._svgHalos[ledIndex].style.fill = evt.hex
 
     this.setState({pickedColor: evt.rgb})
   }
 
+
+  onOk = () => {
+    this.setState({
+      showColorPicker: false,
+      selectedLedIndex: null,
+    })
+  }
+
   render() {
     return (
-      <div>
-        { this.state.showColorPicker ? <ChromePicker disableAlpha={true} color={this.state.pickedColor} onChange={this.onUpdateColor}/> : null }
+      <div className={Styles['ring-container']}>
+
         <div ref={this._svgContainerRef} />
+        <div className={Styles['color-picker-container']}>
+          {
+            this.state.showColorPicker ?
+            <div>
+              <ChromePicker disableAlpha={true} color={this.state.pickedColor} onChange={this.onUpdateColor}/>
+              <Button style={{marginTop: 5}} type='primary' size='small' onClick={this.onOk}>ok</Button>
+            </div>
+            :
+            null
+          }
+        </div>
       </div>
     )
   }
