@@ -1,13 +1,19 @@
 import React from 'react'
 import { SwatchesPicker, ChromePicker } from 'react-color'
 import { Button } from 'antd'
+import {
+  BulbOutlined
+} from '@ant-design/icons'
 import Styles from './styles.css'
+
+
+const NB_LED = 24
 
 export default class LedRing extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      colors: (new Uint8Array(24 * 3)).fill(255),
+      colors: (new Uint8Array(NB_LED * 3)).fill(255),
       showColorPicker: false,
       pickedColor: {r: 255, g: 255, b: 255},
       selectedLedIndex: null,
@@ -15,13 +21,15 @@ export default class LedRing extends React.Component {
     this._svgContainerRef = React.createRef()
     this._svgCircles = []
     this._svgHalos = []
+
+
   }
 
   componentDidMount() {
     const size = 400
-    const nbLed = 24
+    const nbLed = NB_LED
     const center = size / 2
-    const radiusLed = 0.25 * Math.PI * size / 24 //20
+    const radiusLed = 0.25 * Math.PI * size / NB_LED //20
     const border = 30
     const radiusRing = size / 2 - radiusLed - border
 
@@ -117,17 +125,38 @@ export default class LedRing extends React.Component {
 
 
   onUpdateColor = (evt) => {
-    console.log(evt)
+    // console.log(evt)
     const rgb = evt.rgb
     const ledIndex = this.state.selectedLedIndex
-    this.state.colors[ledIndex * 3] = rgb.r
-    this.state.colors[ledIndex * 3 + 1] = rgb.g
-    this.state.colors[ledIndex * 3 + 2] = rgb.b
 
-    this._svgCircles[ledIndex].style.fill = evt.hex
-    this._svgHalos[ledIndex].style.fill = evt.hex
+    if (ledIndex >= 0) {
+      this.state.colors[ledIndex * 3] = rgb.r
+      this.state.colors[ledIndex * 3 + 1] = rgb.g
+      this.state.colors[ledIndex * 3 + 2] = rgb.b
 
-    this.setState({pickedColor: evt.rgb})
+      this._svgCircles[ledIndex].style.fill = evt.hex
+      this._svgHalos[ledIndex].style.fill = evt.hex
+
+      this.setState({pickedColor: evt.rgb})
+
+      if (typeof this.props.onUniqueLedChange === 'function') {
+        this.props.onUniqueLedChange(ledIndex, evt)
+      }
+    } else {
+
+      // change global
+      for (let i = 0; i < NB_LED; i += 1) {
+        this.state.colors[i * 3] = rgb.r
+        this.state.colors[i * 3 + 1] = rgb.g
+        this.state.colors[i * 3 + 2] = rgb.b
+        this._svgCircles[i].style.fill = evt.hex
+        this._svgHalos[i].style.fill = evt.hex
+      }
+      this.setState({pickedColor: evt.rgb})
+      if (typeof this.props.onGlobalLedChange === 'function') {
+        this.props.onGlobalLedChange(evt)
+      }
+    }
   }
 
 
@@ -138,10 +167,30 @@ export default class LedRing extends React.Component {
     })
   }
 
+
+  onUpdateGlobalColor = () => {
+    this.setState({
+      showColorPicker: true,
+      pickedColor: {
+        r: 128,
+        g: 128,
+        b: 128,
+      },
+      selectedLedIndex: -1,
+    })
+  }
+
   render() {
     return (
       <div className={Styles['ring-container']}>
-
+        <Button
+          type="text"
+          shape="circle"
+          size='large'
+          className={Styles['global-color-button']}
+          icon={<BulbOutlined style={{color: '#fff'}}/>}
+          onClick={this.onUpdateGlobalColor}
+        />
         <div ref={this._svgContainerRef} />
         <div className={Styles['color-picker-container']}>
           {

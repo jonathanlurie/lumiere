@@ -15,6 +15,28 @@ import { app, BrowserWindow, shell } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
+import { ipcMain } from 'electron'
+
+import BoardWrapper from './core/BoardWrapper'
+
+const boardWrapper = new BoardWrapper()
+
+
+ipcMain.handle('uniqueLedChange', async (evt, args) => {
+  const ledIndex = args[0]
+  const color = args[1]
+  boardWrapper.setUniqueColor(ledIndex, color.hex)
+  return true
+})
+
+
+
+ipcMain.handle('globalLedChange', async (evt, args) => {
+  const color = args[0]
+  boardWrapper.setGlobalColor(color.hex)
+  return true
+})
+
 
 export default class AppUpdater {
   constructor() {
@@ -52,6 +74,9 @@ const installExtensions = async () => {
 };
 
 const createWindow = async () => {
+  // go there for com between main and renderer https://www.electronjs.org/docs/api/ipc-main
+  boardWrapper.detect() // add promises inside and declare it where it makes sense
+
   if (
     process.env.NODE_ENV === 'development' ||
     process.env.DEBUG_PROD === 'true'
@@ -91,6 +116,8 @@ const createWindow = async () => {
       mainWindow.show();
       mainWindow.focus();
     }
+
+
   });
 
   mainWindow.on('closed', () => {

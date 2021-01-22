@@ -12,7 +12,9 @@
 const Five = require('johnny-five')
 const pixel = require("node-pixel")
 
-const board = new Five.Board()
+const board = new Five.Board({
+  repl: false,
+})
 let strip = null
 
 board.on('ready', function() {
@@ -22,7 +24,7 @@ board.on('ready', function() {
   // Define our hardware.
   // It's a 12px ring connected to pin 6.
   strip = new pixel.Strip({
-    board: this,
+    board: board,
     controller: "FIRMATA",
     strips: [ {pin: 7, length: 24}, ],
     gamma: 2.8,
@@ -49,18 +51,35 @@ board.on('ready', function() {
         strip.pixel(i).color(randomColor)
       }
       strip.show()
-    }, 10)
+    }, 500)
 
-  
-  
-  
-  
-  });
+
+  })
 
   // Allows for command-line experimentation!
-  this.repl.inject({
-    strip: strip
-  });
+  // this.repl.inject({
+  //   strip: strip
+  // });
 
 })
 
+
+board.on('fail', () => {
+  console.log('event: fail')
+})
+
+
+
+board.on('exit', () => {
+  console.log('event: exit')
+})
+
+
+
+board.on('close', () => {
+  console.log('event: close')
+})
+
+board.on('error', () => {
+  console.log('event: error')
+})
